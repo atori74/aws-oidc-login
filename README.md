@@ -13,7 +13,7 @@ OIDCプロバイダーのCallback URLsとして`http://localhost:3000/callback`�
 
 以下は例
 ```.env
-# The URL of our OIDC Domain.
+# The URL of your OIDC Domain.
 OIDC_DOMAIN='~.jp.auth0.com'
 
 # OIDC application's Client ID.
@@ -27,6 +27,9 @@ OIDC_CLAIMS='profile,email'
 
 # Federated IAM Role ARN.
 AWS_ROLE_ARN='arn:aws:iam::<Account ID>:role/<Role Name>'
+
+# Credential profile.
+AWS_PROFILE='oidc'
 ```
 
 ### ログイン
