@@ -1,6 +1,6 @@
 # aws-oidc-login
 
-OIDCプロバイダーにログインしてIDトークンを取得し、さらにSTSのAssumeRoleWithWebIdentityを実行して得られた一時的な認証情報を`$HOME/.aws/credentials`にセットするまでを自動化する。
+OIDCプロバイダーにログインしてIDトークンを取得し、さらにSTSの`AssumeRoleWithWebIdentity`を実行して得られた一時的な認証情報を`$HOME/.aws/credentials`にセットするまでを自動化する。
 
 ## 使い方
 
@@ -9,6 +9,7 @@ OIDCプロバイダーにログインしてIDトークンを取得し、さら�
 OIDCプロバイダーのCallback URLsとして`http://localhost:3000/callback`を許可しておく
 
 実行ファイルと同じディレクトリにある`.env` ファイルを環境に合わせて編集する
+(環境変数としてセットしてもOK)
 
 以下は例
 ```.env
@@ -22,7 +23,7 @@ OIDC_CLIENT_ID='<Client ID>'
 OIDC_CLIENT_SECRET='<Client Secret>'
 
 # Scopes to request. (comma separated)
-OIDC_CLAIMS=profile,email
+OIDC_CLAIMS='profile,email'
 
 # Federated IAM Role ARN.
 AWS_ROLE_ARN='arn:aws:iam::<Account ID>:role/<Role Name>'

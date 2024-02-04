@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
+	"github.com/skratchdot/open-golang/open"
 
 	"github.com/atori74/aws-oidc-login/platform/authenticator"
 	"github.com/atori74/aws-oidc-login/platform/router"
-	"github.com/skratchdot/open-golang/open"
 )
 
 func main() {

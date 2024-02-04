@@ -3,10 +3,11 @@ package credential
 import (
 	"context"
 
+	"gopkg.in/ini.v1"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"gopkg.in/ini.v1"
 )
 
 type Credential struct {
