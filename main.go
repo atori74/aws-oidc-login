@@ -22,7 +22,10 @@ func main() {
 	}
 
 	done := make(chan interface{})
-	rtr := router.New(auth, done)
+	rtr, err := router.New(auth, done)
+	if err != nil {
+		log.Fatalf("Failed to initialize router: %v", err)
+	}
 
 	go http.ListenAndServe("0.0.0.0:3000", rtr)
 

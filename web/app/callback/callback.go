@@ -78,3 +78,46 @@ func Handler(auth *authenticator.Authenticator, done chan interface{}) gin.Handl
 		close(done)
 	}
 }
+
+func Template() string {
+	return `
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="http://code.jquery.com/jquery-3.1.0.min.js" type="text/javascript"></script>
+
+	<!-- font awesome from BootstrapCDN -->
+	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<style>
+		body {
+		  font-family: "proxima-nova", sans-serif;
+		  text-align: center;
+		  font-size: 300%;
+		  font-weight: 100;
+		}
+		h1,
+		h2,
+		h3 {
+		  font-weight: 100;
+		}
+		h2 {
+		  margin-top: 30px;
+		  margin-bottom: 40px;
+		  font-size: 200%;
+		}
+	</style>
+</head>
+<body class="home">
+	<div class="container">
+		<div class="login-page clearfix">
+			<div class="logged-in-box auth0-box logged-in">
+				<h2>Authenticated</h2>
+				<h2>Hello {{ .nickname }}</h3>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+`
+}
