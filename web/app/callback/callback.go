@@ -29,6 +29,8 @@ func Handler(auth *authenticator.Authenticator, done chan interface{}) gin.Handl
 			return
 		}
 
+		fmt.Printf("ID Token: %s\n", token.Extra("id_token").(string))
+
 		idToken, err := auth.VerifyIDToken(ctx.Request.Context(), token)
 		if err != nil {
 			ctx.String(http.StatusInternalServerError, "Failed to verify ID Token.")
@@ -113,7 +115,7 @@ func Template() string {
 		<div class="login-page clearfix">
 			<div class="logged-in-box auth0-box logged-in">
 				<h2>Authenticated</h2>
-				<h2>Hello {{ .nickname }}</h3>
+				<h2>Hello {{ .name }}</h3>
 			</div>
 		</div>
 	</div>

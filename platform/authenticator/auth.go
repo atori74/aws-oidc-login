@@ -20,7 +20,8 @@ type Authenticator struct {
 func New() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(
 		context.Background(),
-		"https://"+os.Getenv("OIDC_DOMAIN")+"/",
+		//"https://"+os.Getenv("OIDC_DOMAIN")+"/",
+		"https://"+os.Getenv("OIDC_DOMAIN"),
 	)
 	if err != nil {
 		return nil, err
