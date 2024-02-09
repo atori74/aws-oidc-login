@@ -13,8 +13,8 @@ OIDCプロバイダーのCallback URLsとして`http://localhost:3000/callback`�
 
 以下は例
 ```.env
-# The URL of your OIDC Domain.
-OIDC_DOMAIN='~.jp.auth0.com'
+# The URL of your OIDC Domain. (Issuer claim without https://)
+OIDC_DOMAIN='~.jp.auth0.com/'
 
 # OIDC application's Client ID.
 OIDC_CLIENT_ID='<Client ID>'
