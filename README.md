@@ -56,15 +56,32 @@ $ aws --profile oidc sts get-caller-identity
 }
 ```
 
+### Process Credential Providerを使った方法
+
+`$HOME/.aws/config`に以下のように設定する
+
+```ini
+[oidc]
+region = ap-northeast-1
+output = json
+credential_process = path/to/aws-oidc-login -p
+```
+
+通常どおりAWS CLIを実行すると、ブラウザが開くので同様にOIDCプロバイダーにログインする。  
+ログインに成功するとシームレスにCLI実行が可能となる。  
+取得した認証情報は`$HOME/.aws/cache/<Profile name>`に保存され、セッションの有効期限内であれば再利用される。
+
 ### オプション
 
 ```
 $ aws-oidc-login -h
 usage: aws-oidc-login [flags] [env]
   -d, --envdir string   directory where env file exists
+  -p, --provider        work as process credential provider
 ```
 
 \-d, --envdir (option) : `.env`ファイルが存在するディレクトリを指定する (デフォルトは実行ファイルと同じディレクトリ)  
+\-p, --provider (option) : このフラグをつけた場合、AWS CLIが[credential_process](https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-sourcing-external.html)で受け取れる形式のJSONを出力する  
 \[env\] (option) : `.env`ファイルの名前を指定する (デフォルトは`.env`) (例)auth0 -> `auth0.env`を参照しに行く.
 
 ## 参考

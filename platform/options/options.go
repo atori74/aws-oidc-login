@@ -3,6 +3,7 @@ package options
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	flag "github.com/spf13/pflag"
 )
@@ -20,7 +21,8 @@ func usage() {
 
 func Parse() *Options {
 	opts := Options{EnvFilename: ".env"}
-	flag.StringVarP(&opts.EnvDir, "envdir", "d", "", "directory where env file exists")
+	execPath, _ := os.Executable()
+	flag.StringVarP(&opts.EnvDir, "envdir", "d", filepath.Dir(execPath), "directory where env file exists")
 	flag.BoolVarP(&opts.IsCredentialProcess, "provider", "p", false, "work as process credential provider")
 
 	flag.Usage = usage

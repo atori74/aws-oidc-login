@@ -2,12 +2,17 @@ package credential
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/ini.v1"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -72,4 +77,51 @@ func NewAWSProcessCredential(c *Credential) *AWSProcessCredential {
 		Version:    1,
 		Credential: *c,
 	}
+}
+
+func (c AWSProcessCredential) Cache() error {
+	profile := os.Getenv("AWS_PROFILE")
+	if profile == "" {
+		profile = "oidc"
+	}
+	dir := filepath.Join(filepath.Dir(config.DefaultSharedCredentialsFilename()), "cache")
+	os.MkdirAll(dir, os.ModePerm)
+	f, err := os.Create(filepath.Join(dir, profile))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	encoder := json.NewEncoder(f)
+	err = encoder.Encode(&c)
+	return err
+}
+
+func GetCache() (string, error) {
+	profile := os.Getenv("AWS_PROFILE")
+	if profile == "" {
+		profile = "oidc"
+	}
+	path := filepath.Join(filepath.Dir(config.DefaultSharedCredentialsFilename()), "cache", profile)
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	plainJsonBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+	var cred AWSProcessCredential
+	err = json.Unmarshal(plainJsonBytes, &cred)
+	if err != nil {
+		return "", err
+	}
+	exp, err := time.Parse(time.RFC3339, cred.Expiration)
+	if err != nil {
+		return "", err
+	}
+	if exp.Before(time.Now()) {
+		return "", errors.New("Cached credential is expired.")
+	}
+	return string(plainJsonBytes), nil
 }

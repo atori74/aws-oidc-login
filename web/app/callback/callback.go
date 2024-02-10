@@ -72,6 +72,12 @@ func Handler(auth *authenticator.Authenticator, opts *options.Options, done chan
 				return
 			}
 			fmt.Printf("%s", j)
+
+			// Cache credential for next execution.
+			err = procCred.Cache()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to cache credentials. %s\n", err)
+			}
 		} else {
 			credentialFilePath := os.Getenv("AWS_CREDENTIALS_FILE")
 			if credentialFilePath == "" {
