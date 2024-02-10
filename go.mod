@@ -11,6 +11,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
+	github.com/spf13/pflag v1.0.5
 	golang.org/x/oauth2 v0.16.0
 	gopkg.in/ini.v1 v1.67.0
 )
