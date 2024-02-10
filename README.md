@@ -1,17 +1,19 @@
 # aws-oidc-login
 
-OIDCプロバイダーにログインしてIDトークンを取得し、さらにSTSの`AssumeRoleWithWebIdentity`を実行して得られた一時的な認証情報を`$HOME/.aws/credentials`にセットするまでを自動化する。
+OpenIDプロバイダーにログインしてIDトークンを取得し、さらにSTSの`AssumeRoleWithWebIdentity`を実行して得られた一時的な認証情報を`$HOME/.aws/credentials`にセットするまでを自動化する。
 
 ## 使い方
 
 ### 準備
 
-OIDCプロバイダーのCallback URLsとして`http://localhost:3000/callback`を許可しておく
+- OpenIDプロバイダーを用意し(Auth0やCognito, Keycloak等)、Callback URLとして`http://localhost:3000/callback`を許可しておく
 
-実行ファイルと同じディレクトリにある`.env` ファイルを環境に合わせて編集する
-(環境変数としてセットしてもOK)
+- 連携するAWSアカウントでIAM IDプロバイダーをセットアップする。またスイッチ先ロールの信頼関係ポリシーでIDプロバイダーからの`sts:AssumeRoleWithWebIdentity`を許可しておく
 
-以下は例
+- 実行ファイルと同じディレクトリにある`.env` ファイルを環境に合わせて編集する
+(直接環境変数としてセットしてもOK)
+
+以下`.env`ファイルの例
 ```.env
 # The URL of your OIDC Domain. (Issuer claim without https://)
 OIDC_DOMAIN='~.jp.auth0.com/'
@@ -53,6 +55,17 @@ $ aws --profile oidc sts get-caller-identity
     "Arn": "arn:aws:sts::<Account ID>:assumed-role/<Role Name>/<Session Name>"
 }
 ```
+
+### オプション
+
+```
+$ aws-oidc-login -h
+usage: aws-oidc-login [flags] [env]
+  -d, --envdir string   directory where env file exists
+```
+
+\-d, --envdir (option) : `.env`ファイルが存在するディレクトリを指定する (デフォルトは実行ファイルと同じディレクトリ)  
+\[env\] (option) : `.env`ファイルの名前を指定する (デフォルトは`.env`) (例)auth0 -> `auth0.env`を参照しに行く.
 
 ## 参考
 [Auth0 Go SDK Quickstarts: Login](https://auth0.com/docs/quickstart/webapp/golang/01-login)  
