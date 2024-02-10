@@ -1,6 +1,7 @@
 package callback
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,10 +12,11 @@ import (
 
 	"github.com/atori74/aws-oidc-login/platform/authenticator"
 	"github.com/atori74/aws-oidc-login/platform/credential"
+	"github.com/atori74/aws-oidc-login/platform/options"
 )
 
 // Handler for our callback.
-func Handler(auth *authenticator.Authenticator, done chan interface{}) gin.HandlerFunc {
+func Handler(auth *authenticator.Authenticator, opts *options.Options, done chan interface{}) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
 		if ctx.Query("state") != session.Get("state") {
@@ -59,22 +61,35 @@ func Handler(auth *authenticator.Authenticator, done chan interface{}) gin.Handl
 			return
 		}
 
-		credentialFilePath := os.Getenv("AWS_CREDENTIALS_FILE")
-		if credentialFilePath == "" {
-			credentialFilePath = config.DefaultSharedCredentialsFilename()
-		}
-		err = cred.SetCredentialFile(credentialFilePath)
-		if err != nil {
-			ctx.String(http.StatusInternalServerError, fmt.Sprintf("Failed to set credential file. %s", err.Error()))
-			return
-		}
+		if opts.IsCredentialProcess {
+			procCred := credential.NewAWSProcessCredential(cred)
+			j, err := json.Marshal(procCred)
+			if err != nil {
+				ctx.String(
+					http.StatusInternalServerError,
+					fmt.Sprintf("Failed to marshal process credential to json. %s", err.Error()),
+				)
+				return
+			}
+			fmt.Printf("%s", j)
+		} else {
+			credentialFilePath := os.Getenv("AWS_CREDENTIALS_FILE")
+			if credentialFilePath == "" {
+				credentialFilePath = config.DefaultSharedCredentialsFilename()
+			}
+			err = cred.SetCredentialFile(credentialFilePath)
+			if err != nil {
+				ctx.String(http.StatusInternalServerError, fmt.Sprintf("Failed to set credential file. %s", err.Error()))
+				return
+			}
 
-		fmt.Println("Successfully Authenticated.")
-		fmt.Println("You can also set credentials as environment variables like below.")
-		fmt.Println("==========")
-		fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", cred.AccessKeyID)
-		fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", cred.SecretAccessKey)
-		fmt.Printf("export AWS_SESSION_TOKEN=%s\n", cred.SessionToken)
+			fmt.Println("Successfully Authenticated.")
+			fmt.Println("You can also set credentials as environment variables like below.")
+			fmt.Println("==========")
+			fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", cred.AccessKeyID)
+			fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", cred.SecretAccessKey)
+			fmt.Printf("export AWS_SESSION_TOKEN=%s\n", cred.SessionToken)
+		}
 
 		ctx.HTML(http.StatusOK, "authenticated.html", profile)
 		close(done)

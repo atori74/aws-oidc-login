@@ -10,12 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/atori74/aws-oidc-login/platform/authenticator"
+	"github.com/atori74/aws-oidc-login/platform/options"
 	"github.com/atori74/aws-oidc-login/web/app/callback"
 	"github.com/atori74/aws-oidc-login/web/app/login"
 )
 
 // New registers the routes and returns the router.
-func New(auth *authenticator.Authenticator, done chan interface{}) (*gin.Engine, error) {
+func New(auth *authenticator.Authenticator, opts *options.Options, done chan interface{}) (*gin.Engine, error) {
 	gin.DefaultWriter = ioutil.Discard
 	router := gin.Default()
 
@@ -26,9 +27,6 @@ func New(auth *authenticator.Authenticator, done chan interface{}) (*gin.Engine,
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("auth-session", store))
 
-	//router.Static("/public", "web/static")
-	//router.LoadHTMLGlob("web/template/*")
-
 	t, err := loadTemplate("authenticated.html", callback.Template())
 	if err != nil {
 		return nil, err
@@ -36,7 +34,7 @@ func New(auth *authenticator.Authenticator, done chan interface{}) (*gin.Engine,
 	router.SetHTMLTemplate(t)
 
 	router.GET("/login", login.Handler(auth))
-	router.GET("/callback", callback.Handler(auth, done))
+	router.GET("/callback", callback.Handler(auth, opts, done))
 
 	return router, nil
 }
