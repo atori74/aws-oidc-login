@@ -29,7 +29,7 @@ func Handler(auth *authenticator.Authenticator, done chan interface{}) gin.Handl
 			return
 		}
 
-		fmt.Printf("ID Token: %s\n", token.Extra("id_token").(string))
+		// fmt.Printf("ID Token: %s\n", token.Extra("id_token").(string))
 
 		idToken, err := auth.VerifyIDToken(ctx.Request.Context(), token)
 		if err != nil {
