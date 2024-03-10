@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -65,6 +68,50 @@ func (c Credential) SetCredentialFile(path string) error {
 	config.SaveTo(path)
 
 	return nil
+}
+
+func (c Credential) GetSiginToken() (string, error) {
+	session, err := json.Marshal(map[string]string{
+		"sessionId":    c.AccessKeyID,
+		"sessionKey":   c.SecretAccessKey,
+		"sessionToken": c.SessionToken,
+	})
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to create json session: %s", err))
+	}
+
+	u, _ := url.Parse("https://signin.aws.amazon.com/federation")
+	params := url.Values{}
+	params.Add("Action", "getSigninToken")
+	params.Add("Session", string(session))
+	u.RawQuery = params.Encode()
+
+	res, err := http.Get(u.String())
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to get signin token: %s", err))
+	} else if res.StatusCode != 200 {
+		return "", errors.New(fmt.Sprintf("Failed to get signin token. Status code is %d", res.StatusCode))
+	}
+	defer res.Body.Close()
+
+	var dec map[string]string
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&dec)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Failed to decode signin token: %s", err))
+	}
+	return dec["SigninToken"], nil
+}
+
+func GetFederatedSigninURL(signinToken string) string {
+	u, _ := url.Parse("https://signin.aws.amazon.com/federation")
+	params := url.Values{}
+	params.Add("Action", "login")
+	params.Add("Issuer", "")
+	params.Add("Destination", "https://console.aws.amazon.com/console/home?region=ap-northeast-1")
+	params.Add("SigninToken", signinToken)
+	u.RawQuery = params.Encode()
+	return u.String()
 }
 
 type AWSProcessCredential struct {

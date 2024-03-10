@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/skratchdot/open-golang/open"
 
 	"github.com/atori74/aws-oidc-login/platform/authenticator"
 	"github.com/atori74/aws-oidc-login/platform/credential"
@@ -82,6 +83,19 @@ func Handler(auth *authenticator.Authenticator, opts *options.Options, done chan
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to cache credentials. %s\n", err)
 			}
+		} else if opts.IsConsoleSignin {
+			signinToken, err := cred.GetSiginToken()
+			if err != nil {
+				ctx.String(http.StatusInternalServerError, fmt.Sprintf("Failed to get signin token. %s", err.Error()))
+				return
+			}
+			signinURL := credential.GetFederatedSigninURL(signinToken)
+			open.Run(signinURL)
+
+			fmt.Println("Successfully Authenticated.")
+			fmt.Println("You can also manually open the url below.")
+			fmt.Println("==========")
+			fmt.Printf("Signin URL: %s\n", signinURL)
 		} else {
 			credentialFilePath := os.Getenv("AWS_CREDENTIALS_FILE")
 			if credentialFilePath == "" {

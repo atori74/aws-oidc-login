@@ -17,6 +17,12 @@ import (
 
 func main() {
 	opts := options.Parse()
+	err := opts.Validate()
+	if err != nil {
+		fmt.Println(err.Error())
+		options.Usage()
+		return
+	}
 
 	if err := godotenv.Load(filepath.Join(opts.EnvDir, opts.EnvFilename)); err != nil {
 		log.Fatalf("Failed to load the env vars: %v", err)
