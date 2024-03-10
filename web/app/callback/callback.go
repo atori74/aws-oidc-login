@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gin-contrib/sessions"
@@ -51,6 +52,9 @@ func Handler(auth *authenticator.Authenticator, opts *options.Options, done chan
 			return
 		}
 
+		if dur, err := strconv.Atoi(os.Getenv("SESSION_DURATION")); err == nil {
+			credential.SessionDuration = dur
+		}
 		cred, err := credential.AssumeRoleWithWebIdentity(
 			os.Getenv("AWS_ROLE_ARN"),
 			roleSessionName,
