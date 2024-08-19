@@ -1,11 +1,12 @@
 package credential
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,6 +39,38 @@ func AssumeRoleWithWebIdentity(roleArn, roleSessionName, idToken string) (*Crede
 		RoleSessionName:  aws.String(roleSessionName),
 		WebIdentityToken: aws.String(idToken),
 		DurationSeconds:  aws.Int32(int32(SessionDuration)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &Credential{
+		AccessKeyID:     *result.Credentials.AccessKeyId,
+		SecretAccessKey: *result.Credentials.SecretAccessKey,
+		SessionToken:    *result.Credentials.SessionToken,
+		Expiration:      time.Now().Add(time.Duration(SessionDuration) * time.Second).Format(time.RFC3339),
+	}, nil
+}
+
+func AssumeRoleWithMfa(profile, roleArn, mfaSerial, mfaToken string) (*Credential, error) {
+	ctx := context.Background()
+	config, err := config.LoadDefaultConfig(ctx, config.WithSharedConfigProfile(profile))
+	if err != nil {
+		return nil, err
+	}
+	stsSvc := sts.NewFromConfig(config)
+
+	cred, err := config.Credentials.Retrieve(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := stsSvc.AssumeRole(context.Background(), &sts.AssumeRoleInput{
+		RoleArn:         aws.String(roleArn),
+		RoleSessionName: aws.String(cred.AccessKeyID),
+		SerialNumber:    aws.String(mfaSerial),
+		TokenCode:       aws.String(mfaToken),
+		DurationSeconds: aws.Int32(int32(SessionDuration)),
 	})
 	if err != nil {
 		return nil, err
@@ -154,7 +187,7 @@ func GetCache() (string, error) {
 		return "", err
 	}
 	defer f.Close()
-	plainJsonBytes, err := ioutil.ReadAll(f)
+	plainJsonBytes, err := io.ReadAll(f)
 	if err != nil {
 		return "", err
 	}
@@ -171,4 +204,36 @@ func GetCache() (string, error) {
 		return "", errors.New("Cached credential is expired.")
 	}
 	return string(plainJsonBytes), nil
+}
+
+func GetAWSCredentialWithMfa() (string, error) {
+	mfaUserProfile := os.Getenv("AWS_MFA_USER_PROFILE")
+	roleArn := os.Getenv("AWS_ROLE_ARN")
+	mfaSerial := os.Getenv("AWS_MFA_SERIAL")
+
+	buf := bufio.NewReader(os.Stdin)
+	input, _, err := buf.ReadLine()
+	if err != nil {
+		return "", err
+	}
+	mfaToken := string(input)
+
+	credential, err := AssumeRoleWithMfa(mfaUserProfile, roleArn, mfaSerial, mfaToken)
+	if err != nil {
+		return "", err
+	}
+	awsCred := NewAWSProcessCredential(credential)
+
+	result, err := json.Marshal(awsCred)
+	if err != nil {
+		return "", err
+	}
+
+	// Cache credential for next execution.
+	err = awsCred.Cache()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to cache credentials. %s\n", err)
+	}
+
+	return string(result), nil
 }

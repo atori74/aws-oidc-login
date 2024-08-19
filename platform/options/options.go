@@ -14,6 +14,7 @@ type Options struct {
 	EnvFilename         string
 	IsCredentialProcess bool
 	IsConsoleSignin     bool
+	IsMfa               bool
 }
 
 func Usage() {
@@ -27,6 +28,7 @@ func Parse() *Options {
 	flag.StringVarP(&opts.EnvDir, "envdir", "d", filepath.Dir(execPath), "directory where env file exists")
 	flag.BoolVarP(&opts.IsCredentialProcess, "provider", "p", false, "work as process credential provider")
 	flag.BoolVarP(&opts.IsConsoleSignin, "console", "c", false, "signin on AWS Management Console")
+	flag.BoolVarP(&opts.IsMfa, "mfa", "", false, "assume role using IAM user with MFA")
 
 	flag.Usage = Usage
 	flag.Parse()

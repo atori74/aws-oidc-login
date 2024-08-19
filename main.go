@@ -34,6 +34,15 @@ func main() {
 			fmt.Printf("%s", cred)
 			return
 		}
+
+		if opts.IsMfa {
+			cred, err = credential.GetAWSCredentialWithMfa()
+			if err != nil {
+				log.Fatalf("Failed to get the cached credential: %v", err)
+			}
+			fmt.Printf("%s", cred)
+			return
+		}
 	}
 
 	auth, err := authenticator.New()
