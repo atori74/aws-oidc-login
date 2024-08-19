@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"gopkg.in/ini.v1"
@@ -210,6 +211,9 @@ func GetAWSCredentialWithMfa() (string, error) {
 	mfaUserProfile := os.Getenv("AWS_MFA_USER_PROFILE")
 	roleArn := os.Getenv("AWS_ROLE_ARN")
 	mfaSerial := os.Getenv("AWS_MFA_SERIAL")
+	if du, err := strconv.Atoi(os.Getenv("SESSION_DURATION")); err == nil {
+		SessionDuration = du
+	}
 
 	buf := bufio.NewReader(os.Stdin)
 	input, _, err := buf.ReadLine()
