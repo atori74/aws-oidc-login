@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/joho/godotenv"
 	"github.com/skratchdot/open-golang/open"
 
@@ -43,6 +45,29 @@ func main() {
 			fmt.Printf("%s", cred)
 			return
 		}
+	}
+
+	if opts.IsMfa {
+		cred, err := credential.GetCredentialWithMfa()
+		if err != nil {
+			log.Fatalf("Failed to get temporary credential with MFA: %v", err)
+		}
+		credentialFilePath := os.Getenv("AWS_CREDENTIALS_FILE")
+		if credentialFilePath == "" {
+			credentialFilePath = config.DefaultSharedCredentialsFilename()
+		}
+		err = cred.SetCredentialFile(credentialFilePath)
+		if err != nil {
+			log.Fatalf("Failed to set credential file. %v", err)
+		}
+
+		fmt.Println("Successfully Authenticated.")
+		fmt.Println("You can also set credentials as environment variables like below.")
+		fmt.Println("==========")
+		fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", cred.AccessKeyID)
+		fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", cred.SecretAccessKey)
+		fmt.Printf("export AWS_SESSION_TOKEN=%s\n", cred.SessionToken)
+		return
 	}
 
 	auth, err := authenticator.New()

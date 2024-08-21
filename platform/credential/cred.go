@@ -207,7 +207,7 @@ func GetCache() (string, error) {
 	return string(plainJsonBytes), nil
 }
 
-func GetAWSCredentialWithMfa() (string, error) {
+func GetCredentialWithMfa() (*Credential, error) {
 	mfaUserProfile := os.Getenv("AWS_MFA_USER_PROFILE")
 	roleArn := os.Getenv("AWS_ROLE_ARN")
 	mfaSerial := os.Getenv("AWS_MFA_SERIAL")
@@ -215,14 +215,19 @@ func GetAWSCredentialWithMfa() (string, error) {
 		SessionDuration = du
 	}
 
+	fmt.Fprintf(os.Stderr, "Token for %s: ", mfaSerial)
 	buf := bufio.NewReader(os.Stdin)
 	input, _, err := buf.ReadLine()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	mfaToken := string(input)
 
-	credential, err := AssumeRoleWithMfa(mfaUserProfile, roleArn, mfaSerial, mfaToken)
+	return AssumeRoleWithMfa(mfaUserProfile, roleArn, mfaSerial, mfaToken)
+}
+
+func GetAWSCredentialWithMfa() (string, error) {
+	credential, err := GetCredentialWithMfa()
 	if err != nil {
 		return "", err
 	}
